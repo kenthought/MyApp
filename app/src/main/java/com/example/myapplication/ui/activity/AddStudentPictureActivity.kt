@@ -1,29 +1,27 @@
 package com.example.myapplication.ui.activity
 
+import android.R.attr
 import android.app.Activity
 import android.content.Intent
-import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
+import android.util.Base64
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.classes.StudentItem
+import com.example.myapplication.classes.StudentPictureItem
 import com.example.myapplication.classes.config
-import com.example.myapplication.remote.StudentService
-import org.json.JSONObject
+import com.example.myapplication.remote.ApiService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.*
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLEncoder
-import javax.net.ssl.HttpsURLConnection
 
 
 class AddStudentPictureActivity : AppCompatActivity() {
@@ -31,25 +29,37 @@ class AddStudentPictureActivity : AppCompatActivity() {
     private lateinit var spinner: Spinner
     private lateinit var file_name: TextView
     private var imageUri: Uri? = null
+    private var id = 0
+    private var name: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_add_student_picture)
-        spinner = findViewById(R.id.spinner)
+
         getRequest()
+
+        spinner = findViewById(R.id.spinner)
+
         val button: Button = findViewById(R.id.add_photo)
         button.setOnClickListener {
             startChooseImageIntentForResult()
         }
+
         file_name = findViewById(R.id.file_name)
+
+        val button_add: Button = findViewById(R.id.button_addPic)
+        button_add.setOnClickListener {
+            postRequest()
+        }
+
     }
 
     fun getRequest() {
         val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
             .baseUrl(config.BASE_URL)
             .build()
-            .create(StudentService::class.java)
+            .create(ApiService::class.java)
 
         val student = retrofit.getData()
 
@@ -60,12 +70,12 @@ class AddStudentPictureActivity : AppCompatActivity() {
             ) {
                 val responseBody = response.body()
 
-                Log.d("Response: ", responseBody.toString())
+                Log.d("Get Response: ", responseBody.toString())
 
                 if (responseBody != null) {
                     var options: ArrayList<String> = ArrayList()
                     for (item in responseBody) {
-                        options.add(item.first_name + " " + item.last_name)
+                        options.add(item.id.toString() + ". " + item.first_name + " " + item.last_name)
                     }
                     val dataAdapter = ArrayAdapter(
                         applicationContext, android.R.layout.simple_spinner_dropdown_item, options
@@ -82,9 +92,57 @@ class AddStudentPictureActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<List<StudentItem>?>, t: Throwable) {
-                TODO("Not yet implemented")
             }
         })
+    }
+
+    fun postRequest() {
+        val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(config.BASE_URL)
+            .build()
+            .create(ApiService::class.java)
+
+        val studentPictureItem = StudentPictureItem(id, file_name.text.toString())
+
+        val student_picture = retrofit.addPicture(studentPictureItem);
+
+        student_picture.enqueue(object : Callback<StudentPictureItem?> {
+            override fun onResponse(
+                call: Call<StudentPictureItem?>,
+                response: Response<StudentPictureItem?>
+            ) {
+                println("RESPONSE: " + response.body().toString())
+                val text = "Student Picture Added!"
+                val duration = Toast.LENGTH_SHORT
+
+                val toast = Toast.makeText(applicationContext, text, duration)
+                toast.show()
+            }
+
+            override fun onFailure(call: Call<StudentPictureItem?>, t: Throwable) {
+//                println(t.printStackTrace())
+//                val text = "Error Adding Picture!"
+//                val duration = Toast.LENGTH_SHORT
+//
+//                val toast = Toast.makeText(applicationContext, text, duration)
+//                toast.show()
+            }
+        })
+//        sendImage()
+    }
+
+    fun sendImage() {
+        Log.d("PATH: ", imageUri!!.lastPathSegment.toString())
+        var file = File(imageUri.toString())
+        Log.d("PATH2: ", file.toString())
+        val bitmap : Bitmap = BitmapFactory.decodeFile(file.path);
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        val byteArray : ByteArray = byteArrayOutputStream.toByteArray()
+
+        val encodedImage: String = Base64.encodeToString(byteArray, Base64.DEFAULT)
+
+        Log.d("Encoded String: ", encodedImage)
     }
 
     private fun startChooseImageIntentForResult() {
@@ -101,77 +159,29 @@ class AddStudentPictureActivity : AppCompatActivity() {
         if (requestCode == 1002 && resultCode == Activity.RESULT_OK) {
             // In this case, imageUri is returned by the chooser, save it.
             imageUri = data!!.data
+
             file_name.text = imageUri!!.lastPathSegment.toString()
+                .substring(imageUri!!.lastPathSegment.toString().lastIndexOf("/") + 1)
 
-            val name : String = spinner.selectedItem.toString()
+            name = spinner.selectedItem.toString().substring(
+                spinner.selectedItem.toString().indexOf(".") + 1,
+                spinner.selectedItem.toString().length
+            )
+            id = Integer.parseInt(
+                spinner.selectedItem.toString()
+                    .substring(0, spinner.selectedItem.toString().indexOf(".", -1))
+            )
         } else
-        super.onActivityResult(requestCode, resultCode, data)
+            super.onActivityResult(requestCode, resultCode, data)
     }
 
+    fun addStudentPicture() {
+        val fileName: String = file_name.text.substring(file_name.text.lastIndexOf("/") + 1)
+        val text = "Id: " + id.toString() + "Name: " + name + " Image: " + fileName
+        val duration = Toast.LENGTH_SHORT
 
-    fun requestGET(url: String?): String? {
-        val obj = URL(url)
-        val con = obj.openConnection() as HttpURLConnection
-        con.requestMethod = "GET"
-        val responseCode = con.responseCode
-        println("Response Code :: $responseCode")
-        return if (responseCode == HttpURLConnection.HTTP_OK) {
-            val `in` =
-                BufferedReader(InputStreamReader(con.inputStream))
-            var inputLine: String?
-            val response = StringBuffer()
-            while (`in`.readLine().also { inputLine = it } != null) {
-                response.append(inputLine)
-                Log.d("resp", inputLine.toString())
-            }
-            `in`.close()
-            response.toString()
-        } else {
-            ""
-        }
+        val toast = Toast.makeText(applicationContext, text, duration)
+        toast.show()
     }
 
-    fun requestPOST(r_url: String?, postDataParams: JSONObject): String? {
-        val url = URL(r_url)
-        val conn: HttpURLConnection = url.openConnection() as HttpURLConnection
-        conn.readTimeout = 3000
-        conn.connectTimeout = 3000
-        conn.requestMethod = "POST"
-        conn.doInput = true
-        conn.doOutput = true
-        val os: OutputStream = conn.outputStream
-        val writer = BufferedWriter(OutputStreamWriter(os, "UTF-8"))
-        writer.write(encodeParams(postDataParams))
-        writer.flush()
-        writer.close()
-        os.close()
-        val responseCode: Int = conn.responseCode // To Check for 200
-        if (responseCode == HttpsURLConnection.HTTP_OK) {
-            val `in` = BufferedReader(InputStreamReader(conn.inputStream))
-            val sb = StringBuffer("")
-            var line: String? = ""
-            while (`in`.readLine().also { line = it } != null) {
-                sb.append(line)
-                break
-            }
-            `in`.close()
-            return sb.toString()
-        }
-        return null
-    }
-
-    private fun encodeParams(params: JSONObject): String? {
-        val result = StringBuilder()
-        var first = true
-        val itr = params.keys()
-        while (itr.hasNext()) {
-            val key = itr.next()
-            val value = params[key]
-            if (first) first = false else result.append("&")
-            result.append(URLEncoder.encode(key, "UTF-8"))
-            result.append("=")
-            result.append(URLEncoder.encode(value.toString(), "UTF-8"))
-        }
-        return result.toString()
-    }
 }
