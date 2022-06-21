@@ -2,6 +2,6 @@ package com.example.myapplication.classes
 
 class config {
     companion object {
-        final val BASE_URL : String = "http://192.168.1.4:8000/"
+        final val BASE_URL : String = "http://192.168.1.5:8000/"
     }
 }

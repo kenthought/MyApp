@@ -16,6 +16,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -166,6 +170,9 @@ class FrameAnalyser( private var context: Context ,
                             }
                         }
                         Logger.log( "Person identified as $bestScoreUserName" )
+                        val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
+                        val currentDate = sdf.format(Date())
+                        Attendance.attendance(bestScoreUserName, currentDate)
                         predictions.add(
                             Prediction(
                                 face.boundingBox,

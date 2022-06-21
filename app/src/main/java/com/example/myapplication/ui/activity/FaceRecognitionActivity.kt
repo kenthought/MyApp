@@ -12,9 +12,11 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.text.method.ScrollingMovementMethod
+import android.util.Log
 import android.util.Size
 import android.view.View
 import android.view.WindowInsets
+import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -30,9 +32,10 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleOwner
 import com.example.myapplication.*
 import com.example.myapplication.FileReader
-import com.google.common.util.concurrent.ListenableFuture
+import com.example.myapplication.classes.ListAttendance
 import com.example.myapplication.model.FaceNetModel
 import com.example.myapplication.model.Models
+import com.google.common.util.concurrent.ListenableFuture
 import java.io.*
 import java.util.concurrent.Executors
 
@@ -53,6 +56,7 @@ class FaceRecognitionActivity : AppCompatActivity() {
     private lateinit var fileReader: FileReader
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var stopAttendance: Button;
 
     // <----------------------- User controls --------------------------->
 
@@ -69,21 +73,35 @@ class FaceRecognitionActivity : AppCompatActivity() {
     // Default is Models.FACENET ; Quantized models are faster
     private val modelInfo = Models.FACENET
 
+    lateinit var attendance: String
+    private val listAttendance = ArrayList<String>()
+
     // <---------------------------------------------------------------->
 
 
     companion object {
 
         lateinit var logTextView: TextView
+        var attendance: String = ""
 
         fun setMessage(message: String) {
             logTextView.text = message
         }
 
+        fun listAttendance(student_name: String, time: String) {
+            if(student_name != "Unknown")
+                attendance = student_name + " " + time
+                    //search unsaon pagkuha ni na value pagawas
+            Log.d("companion object", attendance)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val b = intent.extras
+        val time_type = b!!.getString("time_type")
+        val subject = b!!.getString("subject")
+        Log.d("VALUE", time_type + " " + subject)
 
         // Remove the status bar to have a full screen experience
         // See this answer on SO -> https://stackoverflow.com/a/68152688/10878733
@@ -98,6 +116,7 @@ class FaceRecognitionActivity : AppCompatActivity() {
 
         // Implementation of CameraX preview
 
+        stopAttendance = findViewById(R.id.button_stopAttendance)
         previewView = findViewById(R.id.preview_view)
         logTextView = findViewById(R.id.log_textview)
         logTextView.movementMethod = ScrollingMovementMethod()
@@ -148,6 +167,12 @@ class FaceRecognitionActivity : AppCompatActivity() {
             alertDialog.show()
         }
 
+        stopAttendance.setOnClickListener({
+
+            val instance = FaceRecognitionActivity.attendance;
+
+            Log.d("instance:",instance)
+        })
     }
 
     // ---------------------------------------------- //
@@ -222,7 +247,7 @@ class FaceRecognitionActivity : AppCompatActivity() {
     private fun showSelectDirectoryDialog() {
         val alertDialog = AlertDialog.Builder(this).apply {
             setTitle("Select Images Directory")
-            setMessage("As mentioned in the project\'s README file, please select a directory which contains the images.")
+            setMessage("Please select a directory which contains the images.")
             setCancelable(false)
             setPositiveButton("SELECT") { dialog, which ->
                 dialog.dismiss()

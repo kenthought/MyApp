@@ -2,10 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:keepScreenOn="true">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:id="@+id/linearLayout2"
@@ -24,7 +22,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textSize="24sp"
-            tools:text="@string/add_student" />
+            tools:text="@string/start_attendance" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -41,7 +40,7 @@
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/choose_student"
+            android:text="@string/choose_subject"
             android:textSize="16sp" />
 
         <Spinner
@@ -53,37 +52,36 @@
             android:id="@+id/textView3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/add_photo"
+            android:text="@string/time_type"
             android:textSize="16sp" />
 
-        <LinearLayout
+        <RadioGroup
+            android:id="@+id/radioGroup"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content">
 
-            <Button
-                android:id="@+id/add_photo"
-                android:layout_width="58dp"
+            <RadioButton
+                android:id="@+id/radioButton"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="12dp"
-                app:icon="@drawable/ic_baseline_photo_camera_24" />
+                android:buttonTint="@color/navy_700"
+                android:text="@string/time_in" />
 
-            <TextView
-                android:id="@+id/file_name"
-                android:layout_width="wrap_content"
+            <RadioButton
+                android:id="@+id/radioButton2"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:text="@string/count_photo"
-                android:textSize="16sp" />
-        </LinearLayout>
+                android:buttonTint="@color/navy_700"
+                android:text="@string/time_out" />
+
+        </RadioGroup>
 
         <Button
             android:id="@+id/button_startAttendance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Submit" />
+            android:text="@string/start_attendance" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

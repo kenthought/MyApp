@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.myapplication.databinding.FragmentHomeBinding
 import android.content.Intent
 import com.example.myapplication.ui.activity.FaceRecognitionActivity
+import com.example.myapplication.ui.activity.StartAttendanceActivity
 
 class HomeFragment : Fragment() {
 
@@ -44,7 +45,7 @@ class HomeFragment : Fragment() {
 //        }
         val startAttendance: TextView = binding.startAttendance
         startAttendance.setOnClickListener {
-            val intent = Intent(context, FaceRecognitionActivity::class.java).apply {
+            val intent = Intent(context, StartAttendanceActivity::class.java).apply {
             putExtra("START ATTENDANCE", "Starting start attendance")
         }
             startActivity(intent)

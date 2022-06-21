@@ -2,13 +2,17 @@ package com.example.myapplication.remote
 
 import com.example.myapplication.classes.StudentItem
 import com.example.myapplication.classes.StudentPictureItem
+import com.example.myapplication.classes.SubjectsItem
 import retrofit2.Call
 import retrofit2.http.*
 
 interface ApiService {
 
     @GET("getStudents")
-    fun getData() : Call<List<StudentItem>>
+    fun getStudents() : Call<List<StudentItem>>
+
+    @GET("getSubjects")
+    fun getSubjects() : Call<List<SubjectsItem>>
 
     @POST("addStudentPicture")
     @Streaming
