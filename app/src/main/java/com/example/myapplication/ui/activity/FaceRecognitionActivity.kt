@@ -10,6 +10,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.provider.DocumentsContract
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
@@ -82,26 +83,29 @@ class FaceRecognitionActivity : AppCompatActivity() {
     companion object {
 
         lateinit var logTextView: TextView
-        var attendance: String = ""
+        var attendance = mutableListOf<ListAttendance>()
 
         fun setMessage(message: String) {
             logTextView.text = message
         }
 
         fun listAttendance(student_name: String, time: String) {
-            if(student_name != "Unknown")
-                attendance = student_name + " " + time
-                    //search unsaon pagkuha ni na value pagawas
-            Log.d("companion object", attendance)
+            //check kung naa na ang name sa student sa array.
+            //ibutang sa mutable list ang attendance tapos i access sa baba unya
+            //himoog list para ma distinct by. kung dili proceed ta atong o click
+            //ang button para ibutang sa list!
+            if(student_name != "Unknown") {
+                attendance.add(ListAttendance(student_name, time))
+            }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val b = intent.extras
-        val time_type = b!!.getString("time_type")
+        val timeType = b!!.getString("time_type")
         val subject = b!!.getString("subject")
-        Log.d("VALUE", time_type + " " + subject)
+        Log.d("VALUE", timeType + " " + subject)
 
         // Remove the status bar to have a full screen experience
         // See this answer on SO -> https://stackoverflow.com/a/68152688/10878733
@@ -167,12 +171,21 @@ class FaceRecognitionActivity : AppCompatActivity() {
             alertDialog.show()
         }
 
-        stopAttendance.setOnClickListener({
+        stopAttendance.setOnClickListener{
 
-            val instance = FaceRecognitionActivity.attendance;
+            var listAttendance = FaceRecognitionActivity.attendance;
+            val attendance = listAttendance.distinctBy { it.student_name }
+            val arrayList = ArrayList(attendance);
 
-            Log.d("instance:",instance)
-        })
+            attendance.forEach({ println(it.student_name + " " + it.time) })
+            val intent = Intent(applicationContext, ListAttendanceActivity::class.java).apply {
+                putExtra("timeType", timeType)
+                putExtra("subject", subject)
+                putParcelableArrayListExtra("attendance", arrayList)
+            }
+
+            startActivity(intent)
+        }
     }
 
     // ---------------------------------------------- //
